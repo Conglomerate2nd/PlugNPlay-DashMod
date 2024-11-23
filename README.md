@@ -21,4 +21,3 @@ The base repository also has a template README.md that you must fill out with al
 This game will be designed with controller in mind. DO NOT change the provided project's Input Map and I would strongly advise against including mechanics that require a Mouse.
 
 ## Credits
-

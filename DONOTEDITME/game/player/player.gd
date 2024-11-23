@@ -34,6 +34,13 @@ const STOP_VELOCITY_THRSHOLD: float = 0.01
 ## so that they don't accelerate past this speed while in freefall
 @export var max_fall_speed: float = 50
 
+##MY ADDITIONS BEGIN
+##Dash velocity x and y should create an arch.
+@export var dashX: float = 10
+@export var dashY: float = 5
+@export var dashMax: float = 1
+##MY ADDITIONS END
+
 @export_category("Health/Damage Config")
 ## The maximum health of the player
 @export var max_health: float = 1
@@ -56,9 +63,14 @@ const STOP_VELOCITY_THRSHOLD: float = 0.01
 @onready var anim_player: AnimationPlayer = $AnimationPlayer
 @onready var sprite: Sprite2D = $Sprite2D
 
+
+
 # Player State
 var current_health: float
 var footstep_time: float
+##MY ADDITIONS BEGIN
+var dashCheck: float =1#0 means no more dash.
+##MY ADDITIONS END
 
 ## This method is called on the first frame that the Player is active in the scene tree, and by default
 ## does not do anything. Feel free to override this method if you need to execute any code on the first
@@ -66,6 +78,7 @@ var footstep_time: float
 func _ready():
 	current_health = starting_health
 	footstep_time = footstep_max_time
+	dashCheck = clamp(dashCheck,0,dashMax) 
 
 
 ## This method is called every frame of the game (separate from _physics_process) and by default does not
@@ -94,6 +107,15 @@ func _physics_process(delta):
 	if Input.is_action_just_pressed("player_jump") and can_jump():
 		sound_player.play_sound(jump_sound, global_position)
 		jump()
+	
+	##MY ADDITIONS BEGIN
+	if Input.is_action_just_pressed("player_dash") and canDash():
+		sound_player.play_sound(jump_sound, global_position)
+		dash(direction,delta)
+		dashCheck-=1
+	
+	resetDash()
+	##MY ADDITIONS END
 	
 	# Apply gravity if the player is not grounded
 	if !is_on_floor():
@@ -171,6 +193,21 @@ func get_source_damage() -> float:
 	sound_player.play_sound(hit_sound, global_position) # Assume when this is being called we are dealing damage
 	return contact_damage
 
+##MY ADDITIONS BEGIN
+func dash(input: float, delta: float)->void:
+	velocity.y = -dashY
+	velocity.x = sign(input) * dashX
+
+func canDash()->bool:
+	if(dashCheck == 0):
+		return false
+	else:
+		return true
+##MY ADDITIONS END
+
+func resetDash()-> void:
+	if(is_on_floor()):
+		dashCheck = dashMax
 
 ## Updates the animation state of the player.
 func update_animation() -> void:
