@@ -10,7 +10,8 @@ class_name Player
 ## This quantity represents the threshold by which input is considered to be 0
 const INPUT_THRESHOLD: float = 0.01
 ## This quantity represents the threshold for player speed under which player speed is considered to be 0
-const STOP_VELOCITY_THRSHOLD: float = 0.01
+@export var STOP_VELOCITY_THRSHOLD: float = 0.01
+
 
 @export_category("Movement Config")
 ## This quantity represents the player's maximum horizontal speed in pixels/sec
@@ -39,6 +40,7 @@ const STOP_VELOCITY_THRSHOLD: float = 0.01
 @export var dashX: float = 10
 @export var dashY: float = 5
 @export var dashMax: float = 1
+@export var friction: float = .1
 ##MY ADDITIONS END
 
 @export_category("Health/Damage Config")
@@ -109,6 +111,12 @@ func _physics_process(delta):
 		jump()
 	
 	##MY ADDITIONS BEGIN
+	
+	if Input.is_action_just_pressed("player_dash") and canDash() and Input.is_action_pressed("player_up"):
+		sound_player.play_sound(jump_sound, global_position)
+		upDash(direction,delta)
+		dashCheck-=1
+		
 	if Input.is_action_just_pressed("player_dash") and canDash():
 		sound_player.play_sound(jump_sound, global_position)
 		dash(direction,delta)
@@ -135,6 +143,7 @@ func move_horizontal(input: float, delta: float) -> void:
 	if abs(input) < INPUT_THRESHOLD and abs(velocity.x) > 0:
 		velocity.x += -sign(velocity.x) * deceleration * delta
 		if abs(velocity.x) < STOP_VELOCITY_THRSHOLD:
+		
 			velocity.x = 0
 	elif abs(velocity.x) < max_horizontal_speed:
 		velocity.x += input * acceleration * delta
@@ -198,16 +207,23 @@ func dash(input: float, delta: float)->void:
 	velocity.y = -dashY
 	velocity.x = sign(input) * dashX
 
+func upDash(input: float, delta: float)->void:
+	velocity.y = -dashX
+	velocity.x = sign(input) * dashY
+
+
 func canDash()->bool:
 	if(dashCheck == 0):
 		return false
 	else:
 		return true
-##MY ADDITIONS END
+
 
 func resetDash()-> void:
 	if(is_on_floor()):
 		dashCheck = dashMax
+
+##MY ADDITIONS END
 
 ## Updates the animation state of the player.
 func update_animation() -> void:
